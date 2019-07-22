@@ -70,7 +70,7 @@ class CommonHandler(RequestHandler):
         """
         pass
 
-    def db_query(self, obj, con, page, page_size):
+    def db_query(self, obj, con, page=None, page_size=None):
         """查询方法
 
         Args:
@@ -82,11 +82,17 @@ class CommonHandler(RequestHandler):
         Returns:
 
         """
-        if con:
-            found = (obj.filter_by(**con)
-                     .limit(page_size)
-                     .offset((page - 1) * page_size).all())
+        if page and page_size:
+            if con:
+                found = (obj.filter_by(**con)
+                         .limit(page_size)
+                         .offset((page - 1) * page_size).all())
+            else:
+                found = (obj.limit(page_size)
+                         .offset((page - 1) * page_size).all())
         else:
-            found = (obj.limit(page_size)
-                     .offset((page - 1) * page_size).all())
+            if con:
+                found = obj.filter_by(**con).all()
+            else:
+                found = obj.all()
         return found

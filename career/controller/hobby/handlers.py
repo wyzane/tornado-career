@@ -5,6 +5,10 @@ from config.base import PAGE, PAGE_SIZE
 from ..common import CommonHandler
 
 
+DISPLAY_FIELDS = ["id", "desc", "modified",
+                  "created", "operator"]
+
+
 class HobbyCreateHandler(CommonHandler):
 
     def post(self):
@@ -53,7 +57,7 @@ class HobbyCreateHandler(CommonHandler):
 class HobbyListHandler(CommonHandler):
 
     def post(self):
-        """创建兴趣
+        """兴趣列表
         """
         params = self.request.body
         validator = Validator(args=params)
@@ -86,19 +90,17 @@ class HobbyListHandler(CommonHandler):
             tb_career_hobby = model("career_hobby")
             query_obj = self.db_career.query(tb_career_hobby)
             query_con = None
-            display_fields = ["id", "desc", "modified",
-                              "created", "operator"]
 
             if hobby_id and desc:
                 query_con = {
-                    "hobby_id": hobby_id,
+                    "id": hobby_id,
                     "desc": desc
                 }
-            elif hobby_id:
+            elif hobby_id and not desc:
                 query_con = {
-                    "hobby_id": hobby_id
+                    "id": hobby_id
                 }
-            elif desc:
+            elif desc and not hobby_id:
                 query_con = {
                     "desc": desc
                 }
@@ -119,6 +121,50 @@ class HobbyListHandler(CommonHandler):
                 tmp["operator"] = hobby.operator.strip()
                 hobby_list.append(tmp)
             self.json_response(hobby_list)
+        self.code = "00001"
+        self.msg = err_msg
+        self.json_response()
+
+
+class HobbyUpdateHandler(CommonHandler):
+    """更新兴趣
+    """
+
+    def post(self):
+        params = self.request.body
+        validator = Validator(args=params)
+
+        # NOTE 解析参数
+        if not validator.parse_args():
+            self.code = "00001"
+            self.msg = "参数格式错误"
+            self.json_response()
+            self.finish()
+
+        hobby_id = validator.arg_check(
+            arg_key="hobbyId",
+            arg_type=int,
+            nullable=False)
+        desc = validator.arg_check(
+            arg_key="desc",
+            arg_type=str)
+
+        is_arg_valid, err_msg = validator.is_arg_valid()
+        if is_arg_valid:
+            tb_career_hobby = model("career_hobby")
+            query_obj = self.db_career.query(tb_career_hobby)
+            query_con = {
+                "id": hobby_id
+            }
+            hobby_objs = self.db_query(query_obj,
+                                       query_con)
+
+            if hobby_objs:
+                # FIXME 待优化
+                for hobby in hobby_objs:
+                    hobby.desc = desc
+                self.db_career.commit()
+            self.json_response()
         self.code = "00001"
         self.msg = err_msg
         self.json_response()
