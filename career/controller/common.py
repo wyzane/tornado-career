@@ -71,7 +71,7 @@ class CommonHandler(RequestHandler):
         pass
 
     def db_query(self, obj, con, page=None, page_size=None):
-        """查询方法
+        """查询model对象列表
 
         Args:
             obj: query对象
@@ -95,4 +95,20 @@ class CommonHandler(RequestHandler):
                 found = obj.filter_by(**con).all()
             else:
                 found = obj.all()
+        return found
+
+    def db_query_first(self, obj, con):
+        """查询一个model对象
+
+        Args:
+            obj: query对象
+            con: 查询条件
+
+        Returns:
+
+        """
+        if con:
+            found = obj.filter_by(**con).first()
+        else:
+            found = obj.first()
         return found

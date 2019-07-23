@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/career" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/career/config" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/career/tests" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

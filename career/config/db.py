@@ -1,3 +1,7 @@
+"""数据库配置，包括数据库engine、session等
+"""
+
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 

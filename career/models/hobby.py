@@ -18,6 +18,9 @@ def model(table):
     return BaseModel
 
 
+TB_CAREER_HOBBY = model("career_hobby")
+
+
 # class Hobby(Base):
 #
 #     __tablename__ = "career_hobby"
