@@ -1,4 +1,5 @@
 import json
+import hashlib
 from json.decoder import JSONDecodeError
 
 
@@ -63,3 +64,24 @@ class Validator:
         if self.err_msg:
             return False, self.err_msg
         return True, None
+
+
+class Encryption:
+    """加密
+    """
+
+    @staticmethod
+    def encrypt(data):
+        """加密
+        """
+        if data:
+            obj = hashlib.sha256()
+            obj.update(bytes(data, encoding="utf-8"))
+            value = obj.hexdigest()
+            return value
+
+    @staticmethod
+    def decrypt(data):
+        """解密
+        """
+        pass

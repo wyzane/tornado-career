@@ -122,6 +122,45 @@ class HobbyListHandler(CommonHandler):
         self.json_response()
 
 
+class HobbyDetailHandler(CommonHandler):
+    """兴趣详情
+    """
+
+    def post(self):
+        params = self.request.body
+        validator = Validator(args=params)
+
+        hobby_id = validator.arg_check(
+            arg_key="hobbyId",
+            arg_type=int,
+            nullable=False)
+
+        is_arg_valid, err_msg = validator.is_arg_valid()
+        if is_arg_valid:
+            query_obj = self.db_career.query(TB_CAREER_HOBBY)
+            query_con = {
+                "id": hobby_id
+            }
+
+            obj = self.db_query_first(query_obj, query_con)
+
+            hobby_info = dict()
+            if obj:
+                hobby_info["id"] = obj.id
+                hobby_info["desc"] = obj.desc.strip()
+                hobby_info["created"] = str(obj.created)
+                hobby_info["modified"] = str(obj.modified)
+                hobby_info["operator"] = obj.operator.strip()
+
+                self.json_response(hobby_info)
+            self.code = "00003"
+            self.msg = "数据不存在"
+            self.json_response()
+        self.code = "00001"
+        self.msg = err_msg
+        self.json_response()
+
+
 class HobbyUpdateHandler(CommonHandler):
     """更新兴趣
     """

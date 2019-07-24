@@ -56,6 +56,7 @@ class CommonHandler(RequestHandler):
         }
         # self.set_header("Content-Type", "application/json; charset=UTF-8")
         self.write(resp)
+        # self.finish()
         raise Finish()
 
     def format_data(self, objs, fields=[]):
@@ -112,3 +113,15 @@ class CommonHandler(RequestHandler):
         else:
             found = obj.first()
         return found
+
+    def db_existed(self, obj, con):
+        """判断model对象是否存在
+        :param obj:
+        :param con:
+        :return:
+        """
+        if con:
+            found = obj.filter_by(**con).exists()
+        else:
+            found = obj.exists()
+        return True if found else False
