@@ -1,8 +1,11 @@
 from tornado.web import RequestHandler, Finish
-from sqlalchemy.ext.serializer import loads, dumps
+from pycket.session import SessionMixin
+
+from config.base import NONE_TOKEN_URLS
+from core.utils import TokenUtils
 
 
-class CommonHandler(RequestHandler):
+class CommonHandler(RequestHandler, SessionMixin):
 
     status = {
         "00000": "成功",
@@ -14,11 +17,36 @@ class CommonHandler(RequestHandler):
         "00006": "获取数据失败",
         "00007": "删除失败",
         "00008": "更新失败",
+        "00009": "登录失败",
+        "00010": "注册失败",
+        "00011": "用户未登录"
     }
 
     def initialize(self):
         self._code = "00000"
         self._msg = "成功"
+
+    def prepare(self):
+        """登录校验
+        """
+        req_url = self.request.uri
+        req_auth = (self.request.headers
+                    .get("Authentication"))
+
+        if req_url not in NONE_TOKEN_URLS:
+            if not req_auth:
+                self.code = "00011"
+                self.msg = "用户未登录"
+                self.json_response()
+            else:
+                status, msg = (TokenUtils
+                               .verify_token(req_auth))
+                if not status:
+                    self.code = "00011"
+                    self.msg = msg
+                    self.json_response()
+                else:
+                    self.auth = msg
 
     @property
     def db_career(self):
@@ -40,11 +68,11 @@ class CommonHandler(RequestHandler):
     def msg(self, value):
         self._msg = value
 
-    def json_response(self, data=None):
+    def json_response(self, data=None, others=None):
         """返回response
 
         Args:
-             data: 返回前端的数据
+             data: 返给前端的数据
 
         Returns:
 
@@ -54,7 +82,8 @@ class CommonHandler(RequestHandler):
             "msg": self.msg,
             "data": data
         }
-        # self.set_header("Content-Type", "application/json; charset=UTF-8")
+        if others and type(others) == dict:
+            resp = {**resp, **others}
         self.write(resp)
         # self.finish()
         raise Finish()
@@ -116,12 +145,16 @@ class CommonHandler(RequestHandler):
 
     def db_existed(self, obj, con):
         """判断model对象是否存在
-        :param obj:
-        :param con:
-        :return:
         """
         if con:
             found = obj.filter_by(**con).exists()
         else:
             found = obj.exists()
         return True if found else False
+
+    def get_current_user(self):
+        # user = self.get_secure_cookie("user")
+        user = self.session.get("user")
+        if user:
+            return user
+        return None

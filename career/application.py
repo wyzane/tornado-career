@@ -17,4 +17,3 @@ class Application(web.Application):
         super(Application, self).__init__(urls, **settings)
 
         self.db_career = db_career
-

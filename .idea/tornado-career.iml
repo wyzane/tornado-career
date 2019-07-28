@@ -6,7 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/career/config" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/career/tests" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.6.5 virtualenv at F:\python_virtualenv\tornado_career" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

@@ -40,6 +40,7 @@ db_career = scoped_session(
 
 Base = declarative_base()
 
+
 def model(table):
     class BaseModel(Base):
         __tablename__ = table

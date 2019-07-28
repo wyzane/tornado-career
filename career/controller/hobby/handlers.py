@@ -1,3 +1,5 @@
+import tornado.web
+
 from core.utils import Validator
 from models.hobby import TB_CAREER_HOBBY
 from config.base import PAGE, PAGE_SIZE
@@ -87,6 +89,10 @@ class HobbyListHandler(CommonHandler):
             query_obj = self.db_career.query(TB_CAREER_HOBBY)
             query_con = None
 
+            # print("auth:", self.auth)
+            # print("user id:", self.auth.get("user_id"))
+            # print("username:", self.auth.get("username"))
+
             if hobby_id and desc:
                 query_con = {
                     "id": hobby_id,
@@ -129,6 +135,12 @@ class HobbyDetailHandler(CommonHandler):
     def post(self):
         params = self.request.body
         validator = Validator(args=params)
+
+        # NOTE 解析参数
+        if not validator.parse_args():
+            self.code = "00001"
+            self.msg = "参数格式错误"
+            self.json_response()
 
         hobby_id = validator.arg_check(
             arg_key="hobbyId",
