@@ -1,8 +1,14 @@
+import tornado.web
+
 from core.utils import Validator
-from models.hobby import model
+from models.hobby import TB_CAREER_HOBBY
 from config.base import PAGE, PAGE_SIZE
 
 from ..common import CommonHandler
+
+
+DISPLAY_FIELDS = ["id", "desc", "modified",
+                  "created", "operator"]
 
 
 class HobbyCreateHandler(CommonHandler):
@@ -18,7 +24,6 @@ class HobbyCreateHandler(CommonHandler):
             self.code = "00001"
             self.msg = "参数格式错误"
             self.json_response()
-            self.finish()
 
         desc = validator.arg_check(
             arg_key="desc",
@@ -35,8 +40,7 @@ class HobbyCreateHandler(CommonHandler):
                 "operator": operator
             }
 
-            tb_career_hobby = model("career_hobby")
-            obj = self.db_career.execute(tb_career_hobby
+            obj = self.db_career.execute(TB_CAREER_HOBBY
                                          .__table__.insert(),
                                          params)
             self.db_career.commit()
@@ -53,7 +57,7 @@ class HobbyCreateHandler(CommonHandler):
 class HobbyListHandler(CommonHandler):
 
     def post(self):
-        """创建兴趣
+        """兴趣列表
         """
         params = self.request.body
         validator = Validator(args=params)
@@ -63,7 +67,6 @@ class HobbyListHandler(CommonHandler):
             self.code = "00001"
             self.msg = "参数格式错误"
             self.json_response()
-            self.finish()
 
         hobby_id = validator.arg_check(
             arg_key="hobbyId",
@@ -83,22 +86,23 @@ class HobbyListHandler(CommonHandler):
         is_arg_valid, err_msg = validator.is_arg_valid()
 
         if is_arg_valid:
-            tb_career_hobby = model("career_hobby")
-            query_obj = self.db_career.query(tb_career_hobby)
+            query_obj = self.db_career.query(TB_CAREER_HOBBY)
             query_con = None
-            display_fields = ["id", "desc", "modified",
-                              "created", "operator"]
+
+            # print("auth:", self.auth)
+            # print("user id:", self.auth.get("user_id"))
+            # print("username:", self.auth.get("username"))
 
             if hobby_id and desc:
                 query_con = {
-                    "hobby_id": hobby_id,
+                    "id": hobby_id,
                     "desc": desc
                 }
-            elif hobby_id:
+            elif hobby_id and not desc:
                 query_con = {
-                    "hobby_id": hobby_id
+                    "id": hobby_id
                 }
-            elif desc:
+            elif desc and not hobby_id:
                 query_con = {
                     "desc": desc
                 }
@@ -108,7 +112,7 @@ class HobbyListHandler(CommonHandler):
                                        page,
                                        page_size)
 
-            # FIXME 这种实现方式待优化
+            # FIXME 待优化为序列化方式
             hobby_list = list()
             for hobby in hobby_objs:
                 tmp = dict()
@@ -119,6 +123,129 @@ class HobbyListHandler(CommonHandler):
                 tmp["operator"] = hobby.operator.strip()
                 hobby_list.append(tmp)
             self.json_response(hobby_list)
+        self.code = "00001"
+        self.msg = err_msg
+        self.json_response()
+
+
+class HobbyDetailHandler(CommonHandler):
+    """兴趣详情
+    """
+
+    def post(self):
+        params = self.request.body
+        validator = Validator(args=params)
+
+        # NOTE 解析参数
+        if not validator.parse_args():
+            self.code = "00001"
+            self.msg = "参数格式错误"
+            self.json_response()
+
+        hobby_id = validator.arg_check(
+            arg_key="hobbyId",
+            arg_type=int,
+            nullable=False)
+
+        is_arg_valid, err_msg = validator.is_arg_valid()
+        if is_arg_valid:
+            query_obj = self.db_career.query(TB_CAREER_HOBBY)
+            query_con = {
+                "id": hobby_id
+            }
+
+            obj = self.db_query_first(query_obj, query_con)
+
+            hobby_info = dict()
+            if obj:
+                hobby_info["id"] = obj.id
+                hobby_info["desc"] = obj.desc.strip()
+                hobby_info["created"] = str(obj.created)
+                hobby_info["modified"] = str(obj.modified)
+                hobby_info["operator"] = obj.operator.strip()
+
+                self.json_response(hobby_info)
+            self.code = "00003"
+            self.msg = "数据不存在"
+            self.json_response()
+        self.code = "00001"
+        self.msg = err_msg
+        self.json_response()
+
+
+class HobbyUpdateHandler(CommonHandler):
+    """更新兴趣
+    """
+
+    def post(self):
+        params = self.request.body
+        validator = Validator(args=params)
+
+        # NOTE 解析参数
+        if not validator.parse_args():
+            self.code = "00001"
+            self.msg = "参数格式错误"
+            self.json_response()
+
+        hobby_id = validator.arg_check(
+            arg_key="hobbyId",
+            arg_type=int,
+            nullable=False)
+        desc = validator.arg_check(
+            arg_key="desc",
+            arg_type=str)
+
+        is_arg_valid, err_msg = validator.is_arg_valid()
+        if is_arg_valid:
+            query_obj = self.db_career.query(TB_CAREER_HOBBY)
+            query_con = {
+                "id": hobby_id
+            }
+            hobby_objs = self.db_query(query_obj,
+                                       query_con)
+
+            if hobby_objs:
+                # FIXME 待优化为批量更新
+                for hobby in hobby_objs:
+                    hobby.desc = desc
+                self.db_career.commit()
+            self.json_response()
+        self.code = "00001"
+        self.msg = err_msg
+        self.json_response()
+
+
+class HobbyDeleteHandler(CommonHandler):
+    """删除兴趣
+    """
+
+    def post(self):
+        params = self.request.body
+        validator = Validator(args=params)
+
+        if not validator.parse_args():
+            self.code = "00001"
+            self.msg = "参数格式错误"
+            self.json_response()
+
+        hobby_id = validator.arg_check(
+            arg_key="hobbyId",
+            arg_type=int,
+            nullable=False)
+
+        is_arg_valid, err_msg = validator.is_arg_valid()
+        if is_arg_valid:
+            query_obj = self.db_career.query(TB_CAREER_HOBBY)
+            query_con = {
+                "id": hobby_id
+            }
+
+            # FIXME 待优化为软删除
+            obj = self.db_query_first(query_obj, query_con)
+            self.db_career.delete(obj)
+            self.db_career.commit()
+
+            self.json_response()
         self.code = "00001"
         self.msg = err_msg
         self.json_response()

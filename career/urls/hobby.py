@@ -1,8 +1,14 @@
 from controller.hobby.handlers import (HobbyCreateHandler,
-                                       HobbyListHandler)
+                                       HobbyListHandler,
+                                       HobbyUpdateHandler,
+                                       HobbyDeleteHandler,
+                                       HobbyDetailHandler)
 
 
 urls = [
-    (r'/hobby/create', HobbyCreateHandler),
-    (r'/hobby/list', HobbyListHandler),
+    (r'/api/v1/hobby/create', HobbyCreateHandler),
+    (r'/api/v1/hobby/list', HobbyListHandler),
+    (r'/api/v1/hobby/update', HobbyUpdateHandler),
+    (r'/api/v1/hobby/delete', HobbyDeleteHandler),
+    (r'/api/v1/hobby/detail', HobbyDetailHandler),
 ]
